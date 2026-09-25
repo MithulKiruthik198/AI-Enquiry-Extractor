@@ -1,1 +1,9 @@
-{"name":"Suresh","phone":"9876543212","intent":"Bike service","urgency":"high"}
+{"name": "Kumar", "phone": "9876543210", "intent": "AC repair", "urgency": "High"}
+{"name": "Priya", "phone": null, "intent": "Washing machine service", "urgency": "low"}
+{"name": "Suresh", "phone": "9876543212", "intent": "Bike service", "urgency": "High"}
+{"name": "Raj", "phone": "9988776655", "intent": "Fridge not cooling", "urgency": "High"}
+{"name": null, "phone": "9123456780", "intent": "Laptop screen repair", "urgency": "high"}
+{"name": "Divya", "phone": "9000012345", "intent": "AC repair / AC not working", "urgency": "High"}
+{"name": "Kumar", "phone": "9876543210", "intent": "AC repair", "urgency": "High"}
+{"name": "Meena", "phone": null, "intent": "Fix water pipe leak / Request plumber", "urgency": "High"}
+{"name": "Kumar", "phone": "9876543210", "intent": "AC repair", "urgency": "High"}
