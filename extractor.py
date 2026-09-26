@@ -1,16 +1,31 @@
 import os
 import json
+from typing import Literal
 
 from dotenv import load_dotenv
 from google import genai
+from pydantic import BaseModel, Field, ValidationError
 
+
+# Load environment variables
 load_dotenv()
 
 api_key = os.getenv("GEMINI_API_KEY")
 
 client = genai.Client(api_key=api_key)
 
+
+# Pydantic validation model
+class Enquiry(BaseModel):
+    name: str
+    phone: str = Field(pattern=r"^\d{10}$")
+    intent: str
+    urgency: Literal["high", "medium", "low"]
+
+
+# Read customer messages and save valid results
 with open("samples.jsonl", "r") as file, open("results.jsonl", "a") as output_file:
+
     for line in file:
         data = json.loads(line)
 
@@ -26,41 +41,73 @@ Extract:
 - intent
 - urgency
 
-Return only valid JSON.
+Rules:
+- If phone number is not provided, return null.
+- urgency must be high, medium, or low.
+- Return only valid JSON.
+- Do not use Markdown.
+- Do not add explanations.
 
 Customer message:
 {data["message"]}
 """
 
         try:
-            response = client.models.generate_content(
-                model="gemini-3.6-flash",
-                contents=prompt
-            )
+            for attempt in range(3):
 
-            print("\nAI Result:")
-            print(repr(response.text))
+                print(f"\nAttempt {attempt + 1}/3")
 
-            text = response.text.strip()
+                response = client.models.generate_content(
+                    model="gemini-3.6-flash",
+                    contents=prompt
+                )
 
-            if text.startswith("```json"):
-                text = text[7:-3].strip()
+                text = response.text.strip()
 
-            result = json.loads(text)
+                if text.startswith("```json"):
+                    text = text[7:-3].strip()
 
-            print("\nPython Dictionary:")
-            print(result)
+                result = json.loads(text)
 
-            if result["name"] is None:
-                print("Invalid: name is missing")
+                if result.get("urgency"):
+                    result["urgency"] = result["urgency"].lower()
 
-            phone = str(result.get("phone", ""))
+                try:
+                    validated = Enquiry(**result)
 
-            if not phone.isdigit() or len(phone) != 10:
-                print("Invalid: phone number")
+                    print("\n✅ Pydantic Validated:")
+                    print(validated)
 
-            output_file.write(json.dumps(result) + "\n")
+                    output_file.write(
+                        validated.model_dump_json() + "\n"
+                    )
+
+                    print("✅ Saved successfully")
+
+                    break
+
+                except ValidationError as e:
+                    print(f"\n❌ Validation failed on attempt {attempt + 1}")
+                    print(e)
+
+                    if attempt < 2:
+                        prompt += f"""
+
+Your previous output failed validation.
+
+Validation error:
+{e}
+
+Return corrected JSON only.
+"""
+
+            else:
+                print("\n❌ Failed after 3 attempts")
+
+        except json.JSONDecodeError as e:
+            print("\n❌ JSON Error:")
+            print(e)
 
         except Exception as e:
-            print("\nAI Error:")
+            print("\n❌ AI Error:")
             print(e)
