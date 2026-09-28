@@ -13,13 +13,15 @@ client = genai.Client(api_key=api_key)
 def ask_gemini(prompt):
     for attempt in range(3):
         try:
+            start_time = time.time()
             response = client.models.generate_content(
                 model="gemini-3.6-flash",
                 contents=prompt
             )
+            elapsed = time.time() - start_time
+            print(f"Gemini response time: {elapsed:.2f} seconds")
 
             return response
-
         except Exception as e:
             print(f"Attempt {attempt + 1} failed: {e}")
 
