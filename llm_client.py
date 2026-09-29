@@ -1,7 +1,13 @@
 import os
 import time
+import logging
 from dotenv import load_dotenv
 from google import genai
+logging.basicConfig(
+    filename="app.log",
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s"
+)
 
 load_dotenv()
 
@@ -11,6 +17,7 @@ client = genai.Client(api_key=api_key)
 
 
 def ask_gemini(prompt):
+    logging.info("Starting Gemini request")
     for attempt in range(3):
         try:
             start_time = time.time()
@@ -20,7 +27,7 @@ def ask_gemini(prompt):
             )
             elapsed = time.time() - start_time
             print(f"Gemini response time: {elapsed:.2f} seconds")
-
+            logging.info(f"Gemini request succeeded | latency={elapsed:.2f}s")
             return response
         except Exception as e:
             print(f"Attempt {attempt + 1} failed: {e}")
