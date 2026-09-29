@@ -36,6 +36,6 @@ if __name__ == "__main__":
     response = ask_gemini("Say hello in one sentence.")
     if response is None:
 
-       print("No respone from Gemini")
+       print("No respone from AI LLM")
     else:
         print(response.text)
