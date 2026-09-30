@@ -32,15 +32,34 @@ def ask_gemini(prompt):
         except Exception as e:
             print(f"Attempt {attempt + 1} failed: {e}")
 
-            if attempt < 2:
+            status_code = getattr(e, "code", None)
+            print(f"Error code: {status_code}")
+
+            if status_code in [429, 503] and attempt < 2:
                 wait_time = 2 ** attempt
-                print(f"Waiting {wait_time} seconds...")
+                print(f"Retryable error {status_code}. Waiting {wait_time} seconds...")
                 time.sleep(wait_time)
+            else:
+                print(f"Non-retryable error {status_code}. Stopping.")
+                return None
 
     print("Gemini failed after 3 attempts.")
     return None
 if __name__ == "__main__":
-    response = ask_gemini("Say hello in one sentence.")
+    response = ask_gemini("""You are a customer enquiry extraction system.
+
+Extract:
+- name
+- phone
+- intent
+- urgency
+
+Rules:
+- If phone number is not provided, return null.
+- urgency must be high, medium, or low.
+- Return only valid JSON.
+- Do not use Markdown.
+- Do not add explanations..""")
     if response is None:
 
        print("No respone from AI LLM")
