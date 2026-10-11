@@ -4,7 +4,8 @@ from typing import Literal
 
 from dotenv import load_dotenv
 from google import genai
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import ValidationError
+from enquiry_models import Enquiry
 
 
 # Load environment variables
@@ -15,15 +16,8 @@ api_key = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key)
 
 
-# Pydantic validation model
-class Enquiry(BaseModel):
-    name: str
-    phone: str = Field(pattern=r"^\d{10}$")
-    intent: str
-    urgency: Literal["high", "medium", "low"]
 
 
-# Read customer messages and save valid results
 with open("samples.jsonl", "r") as file, open("results.jsonl", "a") as output_file:
 
     for line in file:
