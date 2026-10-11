@@ -12,6 +12,8 @@ logging.basicConfig(
 load_dotenv()
 
 api_key = os.getenv("GEMINI_API_KEY")
+if not api_key:
+    raise ValueError("GEMINI_API_KEY is missing. Check your .env file.")
 
 client = genai.Client(
     api_key=api_key,
@@ -31,9 +33,18 @@ def ask_gemini(prompt):
             elapsed = time.time() - start_time
             print(f"Gemini response time: {elapsed:.2f} seconds")
             logging.info(f"Gemini request succeeded | latency={elapsed:.2f}s")
+            usage = response.usage_metadata
+            logging.info(
+                f"Token usage | input={usage.prompt_token_count}"
+                f"| output={usage.candidates_token_count}"
+                f"| total={usage.total_token_count}"
+            )
             return response
         except Exception as e:
+            logging.exception(f"Attempt {attempt + 1} failed")
+            logging.error(f"Error code={getattr(e, 'code', None)}")
             print(f"Attempt {attempt + 1} failed: {e}")
+
 
             status_code = getattr(e, "code", None)
             print(f"Error code: {status_code}")
