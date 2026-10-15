@@ -1,152 +1,183 @@
-AI Enquiry Extractor
+# AI Enquiry Extractor
 
-A Python project for building an AI-powered system that converts messy customer enquiries into structured information.
+I'm building this project to learn how AI can be used to solve a real-world problem using Python.
 
-Example
+When customers send messages, they don't always explain their requirements in a structured way. They might mix languages, use informal words, or mention several details in a single message. Finding the important information manually can take time.
 
-A customer may send:
+The idea behind this project is simple: take a customer message and extract the useful details into a structured format.
 
-"Bro naan Suresh, my number 9876543212. Bike service venum, romba urgent."
+## Example
 
-The goal is to extract useful information such as:
+A customer might send a message like this:
 
+> Bro naan Suresh, my number 9876543212. Bike service venum, romba urgent.
+
+Instead of keeping the entire message as plain text, I want the system to extract the important information:
+
+```json
 {
   "name": "Suresh",
   "phone": "9876543212",
   "intent": "Bike service",
   "urgency": "high"
 }
+```
 
-Current Progress
+This is an example of the expected output. The actual result depends on how the AI interprets the message.
 
-Completed
+## What I've built so far
 
-Python project setup
+I started with basic Python code for reading customer enquiries from a JSONL file. From there, I worked on connecting the messages to Gemini and extracting information from them.
 
-Virtual environment (.venv)
+As the project grew, I added a few more things:
 
-Environment variables using .env
+- A Gemini API client for communicating with the AI model.
+- A Pydantic model to validate the extracted information.
+- An extraction service to handle the AI response and convert it into structured data.
+- A FastAPI application with endpoints for checking the API status and extracting enquiries.
+- Automated tests using pytest to check whether the validation and extraction logic behave as expected.
 
-API key handling
+I'm building this step by step, so there are still parts that need improvement.
 
-.gitignore for protecting secret files
+## How it works
 
-Gemini API client setup
+The basic flow is:
 
-JSONL file creation
+```text
+Customer message
+       ↓
+   FastAPI API
+       ↓
+ Extraction service
+       ↓
+    Gemini AI
+       ↓
+    JSON data
+       ↓
+ Pydantic validation
+       ↓
+ Structured response
+```
 
-Reading JSONL data with Python
+The goal is to make the output predictable enough for another application to use.
 
-Using json.loads()
+## Project structure
 
-Working with Python dictionaries
-
-Accessing dictionary values using keys
-
-Looping through multiple customer enquiries
-
-Connecting customer data to an LLM request
-
-Current Pipeline
-
-Customer enquiries
-        ↓
-    samples.jsonl
-        ↓
-      Python
-        ↓
-   Read each line
-        ↓
- Python dictionary
-        ↓
-    Customer message
-        ↓
-       LLM
-
-Project Files
-
-AI Enquiry Extractor/
+```text
+AI-Enquiry-Extractor/
 │
+├── main.py
+├── extraction_service.py
+├── enquiry_models.py
+├── llm_client.py
 ├── extractor.py
+│
+├── test_enquiry_models.py
+├── test_extraction_service.py
+│
 ├── samples.jsonl
-├── .env
+├── results.jsonl
+├── requirements.txt
 ├── .gitignore
 └── README.md
+```
 
-File Description
+A quick look at the main files:
 
-extractor.py
-Main Python program.
+- `main.py` — The FastAPI application and its endpoints.
+- `extraction_service.py` — Handles extraction, JSON parsing, and validation.
+- `enquiry_models.py` — Defines the structure of an enquiry and its validation rules.
+- `llm_client.py` — Handles communication with Gemini.
+- `extractor.py` — The batch-processing script.
+- `test_enquiry_models.py` — Tests the enquiry model.
+- `test_extraction_service.py` — Tests the extraction service without making real Gemini requests for the mocked test cases.
 
-samples.jsonl
-Contains sample customer enquiries, with one JSON object per line.
+## Running the project
 
-.env
-Stores the API key locally.
+You'll need Python, a Gemini API key, and the packages listed in `requirements.txt`.
 
-.gitignore
-Prevents sensitive and unnecessary files such as .env and .venv from being uploaded to GitHub.
+Clone the repository:
 
-What I Learned
+```bash
+git clone https://github.com/YOUR-USERNAME/ai-enquiry-extractor.git
+cd ai-enquiry-extractor
+```
 
-Environment Variables
+Create and activate a virtual environment on Windows:
 
-Used .env to keep API credentials outside the Python source code.
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
 
-load_dotenv()
+Install the dependencies:
 
-api_key = os.getenv("GEMINI_API_KEY")
+```powershell
+python -m pip install -r requirements.txt
+```
 
-API Client
+Create a `.env` file in the project folder and add your API key:
 
-Created a client using the API key:
+```text
+GEMINI_API_KEY=your_gemini_api_key_here
+```
 
-client = genai.Client(api_key=api_key)
+Keep this file private. It should never be pushed to GitHub.
 
-The client provides the interface through which Python communicates with the AI API.
+Start the API:
 
-JSONL Processing
+```powershell
+python -m uvicorn main:app --reload
+```
 
-Read customer enquiries one line at a time:
+The API runs locally at `http://127.0.0.1:8000`.
 
-with open("samples.jsonl", "r") as file:
-    for line in file:
-        data = json.loads(line)
+You can open `http://127.0.0.1:8000/docs` to try the endpoints.
 
-Dictionary Access
+## API endpoints
 
-Extracted the customer's message:
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/health` | Checks whether the API is running |
+| GET | `/version` | Returns the current version |
+| POST | `/extract` | Extracts information from a customer message |
 
-data["message"]
+## Testing
 
-API Status
+I'm using pytest to check that the project behaves correctly, including when it receives invalid data.
 
-The Gemini model used during development returned a 503 UNAVAILABLE response because the model was temporarily experiencing high demand.
+Run the tests with:
 
-The Python project structure and JSONL processing can still be developed independently of the temporary model availability issue.
+```powershell
+python -m pytest -v
+```
 
-Next Steps
+The current test suite has **7 passing tests**. They cover valid enquiry data, invalid phone numbers, invalid urgency values, malformed JSON, and extraction using simulated Gemini responses.
 
-Build a strong extraction prompt
+These tests help me catch problems without having to make a real API request every time.
 
-Extract name, phone, intent, and urgency
+## What I'm learning
 
-Return structured JSON from the LLM
+While working on this project, I've been learning how to:
 
-Validate AI-generated data using Python
+- Organize Python code into separate modules.
+- Read and process JSONL files.
+- Work with APIs and environment variables.
+- Use an LLM to extract information from natural-language messages.
+- Validate AI-generated data using Pydantic.
+- Build API endpoints with FastAPI.
+- Handle errors and write automated tests.
 
-Handle missing or invalid information
+## What's next?
 
-Add error handling
+I want to make the project more reliable before considering it finished.
 
-Process 20+ customer enquiries
+My next steps are to improve error handling, test more types of customer messages, evaluate how accurately the model extracts information, and test Tamil and Tanglish messages systematically. I also want to improve batch processing and make the project easier for someone else to set up and run.
 
-Save extracted results to results.jsonl
+This is an ongoing project, and I'm using it to understand not just how to call an AI API, but how to build a complete application around it.
 
-Test and improve failed cases
+ About me
 
-Complete the end-to-end AI enquiry pipeline
+I'm Mithul Kiruthik, a student interested in Python, AI, and building useful software. I'm learning by building projects, testing what I write, and improving the code as I go.
 
-Goal
-
-Build a small but practical AI system that can take messy real-world customer messages and convert them into reliable structured
+GitHub: [MithulKiruthik198](https://github.com/MithulKiruthik198)
